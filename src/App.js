@@ -1,37 +1,52 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+function addUnholdListener(e, interval) {
+  ["mouseup", "mouseleave", "touchend"].forEach((evt) => {
+    e.target.addEventListener(evt, () => {
+      console.log("MouseUp");
+      clearInterval(interval);
+    });
+  });
+}
 
 const App = () => {
   const [temperature, setTemperature] = useState(10);
   const [tempColor, setTempColor] = useState("cold");
 
-  const increaseTemperature = (e) => {
-    if (temperature === 30) return;
-    console.log("super");
-    let interval = setInterval(() => {
-      console.log("super1");
-      const newTemperature = temperature + 1;
-      setTempColor(() => {
-        if (temperature + 1 >= 15) {
-          return "hot";
-        }
-      });
-
-      setTemperature((prev) => prev + 1);
-    }, 50);
-    e.target.addEventListener("mouseup", () => {
-      console.log("super2");
-      clearInterval(interval);
-    });
-  };
-
-  const decreaseTemperature = () => {
-    if (temperature === 0) return;
-
-    const newTemperature = temperature - 1;
-    if (newTemperature < 15) {
+  useEffect(() => {
+    if (temperature >= 15) {
+      setTempColor("hot");
+    } else {
       setTempColor("cold");
     }
-    setTemperature(newTemperature);
+  }, [temperature]);
+
+  const increaseTemperature = (e) => {
+    if (temperature >= 30) return;
+
+    console.log("MouseDown");
+    const interval = setInterval(() => {
+      setTemperature((prev) => {
+        if (prev >= 30) return prev;
+        return prev + 1;
+      });
+    }, 50);
+
+    addUnholdListener(e, interval);
+  };
+
+  const decreaseTemperature = (e) => {
+    if (temperature <= 0) return;
+
+    console.log("MouseDown");
+    const interval = setInterval(() => {
+      setTemperature((prev) => {
+        if (prev <= 0) return prev;
+        return prev - 1;
+      });
+    }, 50);
+
+    addUnholdListener(e, interval);
   };
   return (
     <div className="app-container">
@@ -41,8 +56,18 @@ const App = () => {
         </div>
       </div>
       <div className="button-container">
-        <button onMouseDown={increaseTemperature}>+</button>
-        <button onClick={() => decreaseTemperature()}>-</button>
+        <button
+          onTouchStart={increaseTemperature}
+          onMouseDown={increaseTemperature}
+        >
+          +
+        </button>
+        <button
+          onTouchStart={increaseTemperature}
+          onMouseDown={decreaseTemperature}
+        >
+          -
+        </button>
       </div>
     </div>
   );
